@@ -1,12 +1,17 @@
-{{ if  .Values.extraEnvVars -}}
+{{- /*
+extraEnvVars commonly carry credentials, so they are rendered as a Secret
+(not a ConfigMap) and loaded through envFrom.secretRef.
+*/ -}}
+{{ if .Values.extraEnvVars -}}
 apiVersion: v1
-kind: ConfigMap
+kind: Secret
 metadata:
   name: {{ include "directus.fullname" . }}-extra-environment-variables
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "directus.labels" . | nindent 4 }}
-data:
+type: Opaque
+stringData:
 {{- range .Values.extraEnvVars }}
   {{ .name }}: {{ .value | quote }}
 {{- end }}
