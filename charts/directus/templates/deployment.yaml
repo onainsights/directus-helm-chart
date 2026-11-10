@@ -14,10 +14,15 @@ spec:
       {{- include "directus.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
+        {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
+        {{- if .Values.extraEnvVars }}
+        # envFrom is only read at container start, so roll the pods whenever
+        # extraEnvVars change.
+        checksum/extra-env: {{ toJson .Values.extraEnvVars | sha256sum }}
+        {{- end }}
       labels:
         {{- include "directus.selectorLabels" . | nindent 8 }}
     spec:
@@ -128,7 +133,7 @@ spec:
             {{- end }}
           {{- if .Values.extraEnvVars }}
           envFrom:
-          - configMapRef:
+          - secretRef:
               name: {{ include "directus.fullname" . }}-extra-environment-variables
           {{- end }}
           volumeMounts:
@@ -190,7 +195,7 @@ spec:
             {{- end }}
           {{- if .Values.extraEnvVars }}
           envFrom:
-          - configMapRef:
+          - secretRef:
               name: {{ include "directus.fullname" . }}-extra-environment-variables
           {{- end }}
           volumeMounts:
@@ -295,7 +300,7 @@ spec:
             {{- end }}
           {{- if .Values.extraEnvVars }}
           envFrom:
-          - configMapRef:
+          - secretRef:
               name: {{ include "directus.fullname" . }}-extra-environment-variables
           {{- end }}
           volumeMounts:
